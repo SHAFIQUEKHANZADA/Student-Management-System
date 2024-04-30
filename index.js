@@ -1,95 +1,102 @@
-var studentData = /** @class */ (function () {
-    function studentData(name) {
+import inquirer from "inquirer";
+class StudentData {
+    name;
+    studentID;
+    courses;
+    balance;
+    constructor(name) {
         this.name = name;
-        this.StudentID = this.genID();
+        this.studentID = this.genID();
         this.courses = [];
         this.balance = 0;
     }
-    studentData.prototype.genID = function () {
+    genID() {
         return "S" + Math.floor(10000 + Math.random() * 90000);
-    };
-    studentData.prototype.enroll = function (course) {
+    }
+    enroll(course) {
         this.courses.push(course);
-    };
-    studentData.prototype.checkBalance = function () {
+    }
+    checkBalance() {
         return this.balance;
-    };
-    studentData.prototype.tuitionFee = function (amount) {
+    }
+    tuitionFee(amount) {
         if (amount > this.balance) {
-            console.log("Insufficient balance.\n Please add funds.");
+            console.log("Insufficient balance.\nPlease add funds.");
         }
         else {
             this.balance -= amount;
-            console.log("Payment successful.\n Your Remaining balance:", this.balance);
+            console.log("Payment successful.\nYour Remaining balance:", this.balance);
         }
-    };
-    studentData.prototype.status = function () {
-        console.log("Student Name: ", this.name);
-        console.log("Student ID: ", this.StudentID);
-        console.log("Course Enrolled: ", this.courses.join(", "));
-        console.log("Current Balance: ", this.balance);
-    };
-    return studentData;
-}());
-var subj = /** @class */ (function () {
-    function subj(code, name, fee) {
+    }
+    status() {
+        console.log("Student Name:", this.name);
+        console.log("Student ID:", this.studentID);
+        console.log("Course Enrolled:", this.courses.join(", "));
+        console.log("Current Balance:", this.balance);
+    }
+}
+class Subject {
+    code;
+    name;
+    fee;
+    constructor(code, name, fee) {
         this.code = code;
         this.name = name;
         this.fee = fee;
     }
-    return subj;
-}());
-var c1 = new subj("py", "Python", 5000);
-var c2 = new subj("ts", "Typescript", 4500);
-var c3 = new subj("wd", "Web Develpment", 30000);
-var c4 = new subj("cs", "Cyber Security", 15000);
-var c5 = new subj("ml", "Machine Learning", 20000);
-var c6 = new subj("web", "Web 3.0", 12000);
-var Student1 = new studentData("Zayan");
-var Student2 = new studentData("Talha");
-var Student3 = new studentData("Hamdan");
-var Student4 = new studentData("Shafique");
-var Student5 = new studentData("Sandeed");
-Student1.enroll(c1.name);
-Student1.enroll(c2.name);
-Student2.enroll(c1.name);
-Student2.enroll(c5.name);
-Student2.enroll(c6.name);
-Student3.enroll(c4.name);
-Student4.enroll(c6.name);
-Student5.enroll(c1.name);
-Student5.enroll(c2.name);
-Student5.enroll(c3.name);
-Student5.enroll(c6.name);
-Student1.balance = 5700;
-Student1.tuitionFee(c1.fee);
-// Student1.balance = 5700
-Student1.tuitionFee(c2.fee);
-Student2.balance = 50000;
-Student2.tuitionFee(c1.fee);
-// Student2.balance = 10000
-Student2.tuitionFee(c5.fee);
-// Student2.balance = 10000
-Student2.tuitionFee(c6.fee);
-Student3.balance = 7000;
-Student3.tuitionFee(c4.fee);
-Student4.balance = 60000;
-Student4.tuitionFee(c6.fee);
-Student5.balance = 70000;
-Student5.tuitionFee(c1.fee);
-// Student5.balance = 70000
-Student5.tuitionFee(c2.fee);
-// Student5.balance = 70000
-Student5.tuitionFee(c3.fee);
-// Student5.balance = 70000
-Student5.tuitionFee(c6.fee);
-console.log("\nStudent 1 Status:");
-Student1.status();
-console.log("\nStudent 2 Status:");
-Student2.status();
-console.log("\nStudent 3 Status:");
-Student3.status();
-console.log("\nStudent 4 Status:");
-Student4.status();
-console.log("\nStudent 5 Status:");
-Student5.status();
+}
+// Sample subjects
+const c1 = new Subject("py", "Python", 5000);
+const c2 = new Subject("ts", "Typescript", 4500);
+const c3 = new Subject("wd", "Web Develpment", 30000);
+const c4 = new Subject("cs", "Cyber Security", 15000);
+const c5 = new Subject("ml", "Machine Learning", 20000);
+const c6 = new Subject("web", "Web 3.0", 12000);
+// Function to prompt for student data
+async function promptStudentData() {
+    const studentInfo = await inquirer.prompt([
+        {
+            type: 'input',
+            name: 'name',
+            message: "Enter student's name:"
+        },
+        {
+            type: 'number',
+            name: 'balance',
+            message: "Enter student's initial balance:"
+        }
+    ]);
+    const student = new StudentData(studentInfo.name);
+    student.balance = studentInfo.balance;
+    return student;
+}
+async function promptCourseEnrollment(student) {
+    const { selectedCourses } = await inquirer.prompt([
+        {
+            type: 'checkbox',
+            name: 'selectedCourses',
+            message: "Select courses to enroll:",
+            choices: [c1, c2, c3, c4, c5, c6].map(course => ({ name: course.name, value: course.name }))
+        }
+    ]);
+    selectedCourses.forEach(course => student.enroll(course));
+}
+// Function to prompt for tuition fee payment
+async function promptTuitionFeePayment(student) {
+    const { amount } = await inquirer.prompt([
+        {
+            type: 'number',
+            name: 'amount',
+            message: "Enter tuition fee amount to pay:"
+        }
+    ]);
+    student.tuitionFee(amount);
+}
+async function main() {
+    const student = await promptStudentData();
+    await promptCourseEnrollment(student);
+    await promptTuitionFeePayment(student);
+    console.log("\nStudent Status:");
+    student.status();
+}
+main();
